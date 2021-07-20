@@ -1,16 +1,17 @@
 from django.db import models
-from eleves.models import Personne, AnneeScolaire, Classe
+from classes.models import AnneeClasse, Classe
 
 
-class Professeur(Personne):
+class Professeur(models.Model):
+	nom = models.CharField(max_length=10, default='None')
+	prenom = models.CharField(max_length=30,default='None')
+	adresse = models.CharField(blank=True, null=True, max_length=30)
+	telephone = models.IntegerField(blank=True, null=True)
 	salaire = models.IntegerField()
 	matiere = models.CharField(max_length=30)
-
-
-class ProfesseurClasse(models.Model):
-	professeur = models.ForeignKey(Professeur, on_delete=models.CASCADE)
-	classe = models.ForeignKey(Classe, on_delete=models.CASCADE)
-	anneeScolaire = models.ForeignKey(AnneeScolaire, on_delete=models.CASCADE)
+	classes = models.ManyToManyField(AnneeClasse, related_name='professeurs', blank=True, default='None')
 
 	def __str__(self):
-		return str(self.professeur) + ' : ' + str(self.professeur.matiere) + ' | ' + str(self.classe) + ' | ' + str(self.anneeScolaire)
+		classes = self.classes.all()
+		return str(self.prenom) + ' ' + str(self.nom) + ' ' + str(classes)
+

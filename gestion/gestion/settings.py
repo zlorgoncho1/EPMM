@@ -94,7 +94,7 @@ WSGI_APPLICATION = 'gestion.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'epmm_database',
+        'NAME': 'epmm_database2',
         'USER': 'root',
         'PASSWORD': '',
         'HOST': 'localhost',
