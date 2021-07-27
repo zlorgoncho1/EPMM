@@ -1,28 +1,52 @@
-from rest_framework import viewsets
+from django.http import Http404
+from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.decorators import action
+from rest_framework import status
 from .serializers import *
 from eleves.models import *
-from classes.models import *
-from professeurs.models import *
 
 
-class AnneeScolaireViewSet(viewsets.ModelViewSet):
-	queryset = AnneeScolaire.objects.all()
-	serializer_class = AnneeScolaireSerializer
+""" ELEVE """
+class EleveList(APIView):
+	"""Liste l'ensemble des élèves ou ajoute un élève."""
+	filter_fields = ['nom']
 
-class EleveViewSet(viewsets.ModelViewSet):
-	queryset = Eleve.objects.all()
-	serializer_class = EleveSerializer
+	def get(self, request, format=None):
+		eleves = Eleve.objects.all()
+		serializer = ElevesSerializer(eleves, many=True)
+		return Response(serializer.data)
 
-class ClasseViewSet(viewsets.ModelViewSet):
-	queryset = Classe.objects.all()
-	serializer_class = ClasseSerializer
+	def post(self, request, format=None):
+		serializer = EleveSerializer(data=request.data)
+		if serializer.is_valid():
+			serializer.save()
+			return Response(serializer.data, status=status.HTTP_201_CREATED)
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class ProfesseurViewSet(viewsets.ModelViewSet):
-	queryset = Professeur.objects.all()
-	serializer_class = ProfesseurSerializer
 
-class PaiementViewSet(viewsets.ModelViewSet):
-	queryset = Paiement.objects.all()
-	serializer_class = PaiementSerializer
+class EleveDetail(APIView):
+	"""Détailler, Mettre à jour ou supprimer les informations d'un élève"""
+	def get_object(self, pk):
+		try:
+			return Eleve.objects.get(pk=pk)
+		except Eleve.DoesNotExist:
+			raise Http404
+
+	def get(self, request, pk, format=None):
+		eleve = self.get_object(pk)
+		serializer = EleveSerializer(eleve)
+		return Response(serializer.data)
+
+	def put(self, request, pk, format=None):
+		eleve = self.get_object(pk)
+		serializer = ElevesSerializer(eleve, data=request.data)
+		if serializer.is_valid():
+			serializer.save()
+			return Response(serializer.data)
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+	def delete(self, request, pk, format=None):
+		eleve = self.get_object(pk)
+		eleve.delete()
+		return Response(status=status.HTTP_204_NO_CONTENT)
+""" ELEVE """

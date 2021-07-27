@@ -47,37 +47,34 @@ class AnneeClasseSerializer(serializers.ModelSerializer):
         fields = ['classe', 'annee']
         depth = 2
 
-class TuteurSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Tuteur
-        fields = '__all__'
-        depth  = 1
-
-
-""" Eleves"""
-
 class ElevesSerializer(serializers.HyperlinkedModelSerializer):
-
     class Meta:
         model = Eleve
         fields = ['id', 'prenom', 'nom', 'dateNaissance', 'lieuNaissance']
 
-
 class EleveSerializer(serializers.ModelSerializer):
-
-    classes = AnneeClasseSerializer(many=True)
-    parent = TuteurSerializer()
     class Meta:
         model = Eleve
-        fields = ['nom', 'prenom', 'dateNaissance', 'lieuNaissance', 'adresse', 'parent', 'telephone', 'classes']
+        fields = ['id', 'nom', 'prenom', 'dateNaissance', 'lieuNaissance', 'adresse', 'parent', 'telephone', 'classes']
+        depth = 1
+    classes = AnneeClasseSerializer(many=True)
+
+class ProfesseursSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Professeur
+        fields = ['id', 'nom', 'prenom', 'matiere', 'telephone']
         depth = 1
 
-    def create(self, validated_data):
-        parent = validated_data['parent']
-        parent = Tuteur(nom=parent['nom'], prenom=parent['prenom'], parent=parent['parent'])
-        parent.save()
-        eleve = Eleve(nom=validated_data['nom'], prenom=validated_data['prenom'], dateNaissance=validated_data['dateNaissance'], lieuNaissance=validated_data['lieuNaissance'], parent=parent)
-        eleve.save()
-        return eleve
+class ProfesseurSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Professeur
+        fields = ['id', 'nom', 'prenom', 'matiere', 'telephone', 'salaire', 'classes']
+        depth = 1
+    classes = AnneeClasseSerializer(many=True)
 
-""" Eleves"""
+class PaiementSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Paiement
+        fields = ['id', 'nom', 'prenom', 'matiere', 'telephone', 'salaire', 'classes']
+        depth = 1
+        classes = AnneeClasseSerializer(many=True)

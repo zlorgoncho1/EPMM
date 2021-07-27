@@ -41,7 +41,7 @@ class Classe(models.Model):
 class AnneeScolaire(models.Model):
 	anneeDebut = models.IntegerField()
 	anneeFin = models.IntegerField()
-	classes = models.ManyToManyField(Classe, related_name='professeurs', blank=True)
+	classes = models.ManyToManyField(Classe, related_name='annees', blank=True)
 
 	def __str__(self):
 		return str(self.anneeDebut) + '/' + str(self.anneeFin)
