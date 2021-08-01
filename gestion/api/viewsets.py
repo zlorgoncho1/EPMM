@@ -5,6 +5,8 @@ from rest_framework.response import Response
 from rest_framework import mixins
 from rest_framework import generics
 
+from rest_framework.permissions import IsAuthenticated
+
 from rest_framework import status
 from .serializers import *
 from eleves.models import *
@@ -32,6 +34,7 @@ class EleveList(mixins.ListModelMixin, mixins.CreateModelMixin, generics.Generic
 
 class EleveDetail(APIView):
 	"""Détailler, Mettre à jour ou supprimer les informations d'un élève"""
+	permission_classes = [IsAuthenticated]
 
 	def get_object(self, pk):
 		try:
