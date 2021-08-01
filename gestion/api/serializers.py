@@ -67,6 +67,7 @@ class EleveSerializer(serializers.ModelSerializer):
 
     classes = AnneeClasseSerializer(many=True)
     parent = TuteurSerializer()
+
     class Meta:
         model = Eleve
         fields = ['nom', 'prenom', 'dateNaissance', 'lieuNaissance', 'adresse', 'parent', 'telephone', 'classes']
@@ -79,5 +80,14 @@ class EleveSerializer(serializers.ModelSerializer):
         eleve = Eleve(nom=validated_data['nom'], prenom=validated_data['prenom'], dateNaissance=validated_data['dateNaissance'], lieuNaissance=validated_data['lieuNaissance'], parent=parent)
         eleve.save()
         return eleve
+    
+    def update(self, instance, validated_data):
+        instance.nom = validated_data.get('nom', instance.nom)
+        instance.prenom = validated_data.get('prenom', instance.prenom)
+        instance.dateNaissance = validated_data.get('dateNaissance', instance.dateNaissance)
+        instance.lieuNaissance = validated_data.get('lieuNaissance', instance.lieuNaissance)
+        instance.adresse = validated_data.get('adresse', instance.adresse)
+        instance.telephone = validated_data.get('telephone', instance.telephone)
+        return instance
 
 """ Eleves"""
