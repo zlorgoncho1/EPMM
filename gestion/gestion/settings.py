@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-!65f(0f%w4@ek#a+iu22xkt&r6!1iub(fn_p0=u(@mvoo5o0x9
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -39,6 +39,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'rest_framework',
+    'rest_framework.authtoken',
+    'dj_rest_auth',
+    'django_filters',
 
     'api',
     'eleves',
@@ -51,9 +54,11 @@ INSTALLED_APPS = [
 REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
     # or allow read-only access for unauthenticated users.
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
-    ]
+
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.SearchFilter'
+    ],
 }
 
 
@@ -95,9 +100,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'epmm_database',
-        'USER': 'root',
-        'PASSWORD': '',
-        'HOST': 'localhost',
+        'USER': 'epmm',
+        'PASSWORD': 'epmm',
+        'HOST': 'db',
         'PORT': '3306',
         'OPTIONS': {
             'sql_mode': 'traditional',

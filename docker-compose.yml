@@ -1,0 +1,26 @@
+version: "3.9"
+   
+services:
+  db:
+    image: mysql
+    container_name: epmm_mysql
+    volumes:
+      - ./data/db:/var/lib/mysql
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_DATABASE: epmm_database
+      MYSQL_USER: epmm
+      MYSQL_PASSWORD: epmm
+      MYSQL_ROOT_PASSWORD: root
+
+  web:
+    build: .
+    container_name: epmm_web
+    command: python gestion/manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/code
+    ports:
+      - 8000:8000
+    depends_on:
+      - db

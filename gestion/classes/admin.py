@@ -1,3 +1,9 @@
 from django.contrib import admin
+from .models import *
 
-# Register your models here.
+admin.site.register(Classe)
+admin.site.register(Niveau)
+admin.site.register(Indice)
+admin.site.register(Serie)
+admin.site.register(AnneeClasse)
+admin.site.register(AnneeScolaire)
