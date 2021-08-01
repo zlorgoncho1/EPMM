@@ -1,19 +1,26 @@
 from django.http import Http404
 from rest_framework.views import APIView
 from rest_framework.response import Response
+
+from rest_framework import mixins
+from rest_framework import generics
+
 from rest_framework import status
 from .serializers import *
 from eleves.models import *
 
 
 """ ELEVE """
-class EleveList(APIView):
+class EleveList(mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericAPIView):
 	"""Liste l'ensemble des élèves ou ajoute un élève."""
 
-	def get(self, request, format=None):
-		eleves = Eleve.objects.all()
-		serializer = ElevesSerializer(eleves, many=True)
-		return Response(serializer.data)
+	queryset = Eleve.objects.all()
+	serializer_class = ElevesSerializer
+	filterset_fields = ['id','nom', 'prenom']
+	search_fields = ['nom', 'prenom', 'lieuNaissance']
+
+	def get(self, request):
+		return self.list(request)
 
 	def post(self, request, format=None):
 		serializer = EleveSerializer(data=request.data)
