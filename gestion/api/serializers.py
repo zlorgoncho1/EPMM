@@ -75,9 +75,35 @@ class EleveSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         parent = validated_data['parent']
-        parent = Tuteur(nom=parent['nom'], prenom=parent['prenom'], parent=parent['parent'])
+        if len(parent) == 3:
+            parent = Tuteur(nom=parent['nom'], prenom=parent['prenom'], parent=parent['parent'])
+        elif len(parent) == 4:
+            try:
+                parent = Tuteur(nom=parent['nom'], prenom=parent['prenom'], parent=parent['parent'], adresse=parent['adresse'])
+            except:
+                parent = Tuteur(nom=parent['nom'], prenom=parent['prenom'], parent=parent['parent'], telephone=parent['telephone'])
+        elif len(parent) == 5:
+            try:
+                parent = Tuteur(nom=parent['nom'], prenom=parent['prenom'], parent=parent['parent'], telephone=parent['telephone'], adresse=parent['adresse'])
+            except Exception as e:
+                raise e
+        else:
+            parent = Tuteur(nom=parent['nom'], prenom=parent['prenom'], parent=parent['parent'])
         parent.save()
-        eleve = Eleve(nom=validated_data['nom'], prenom=validated_data['prenom'], dateNaissance=validated_data['dateNaissance'], lieuNaissance=validated_data['lieuNaissance'], parent=parent)
+        if len(validated_data) == 6:
+            eleve = Eleve(nom=validated_data['nom'], prenom=validated_data['prenom'], dateNaissance=validated_data['dateNaissance'], lieuNaissance=validated_data['lieuNaissance'], parent=parent)
+        elif len(validated_data) == 7:
+            try:
+                eleve = Eleve(nom=validated_data['nom'], prenom=validated_data['prenom'], dateNaissance=validated_data['dateNaissance'], lieuNaissance=validated_data['lieuNaissance'], parent=parent, adresse=validated_data['adresse'])
+            except:
+                eleve = Eleve(nom=validated_data['nom'], prenom=validated_data['prenom'], dateNaissance=validated_data['dateNaissance'], lieuNaissance=validated_data['lieuNaissance'], parent=parent, telephone=validated_data['telephone'])
+        elif len(validated_data) == 8:
+            try:
+                eleve = Eleve(nom=validated_data['nom'], prenom=validated_data['prenom'], dateNaissance=validated_data['dateNaissance'], lieuNaissance=validated_data['lieuNaissance'], parent=parent, adresse=validated_data['adresse'], telephone=validated_data['telephone'])
+            except Exception as e:
+                raise e
+        else:
+            eleve = Eleve(nom=validated_data['nom'], prenom=validated_data['prenom'], dateNaissance=validated_data['dateNaissance'], lieuNaissance=validated_data['lieuNaissance'], parent=parent)
         eleve.save()
         return eleve
     
