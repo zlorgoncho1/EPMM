@@ -53,6 +53,14 @@ class TuteurSerializer(serializers.ModelSerializer):
         fields = '__all__'
         depth  = 1
 
+    def update_tuteur(instance, validated_data):
+        instance.nom = validated_data.get('nom', instance.nom)
+        instance.prenom = validated_data.get('prenom', instance.prenom)
+        instance.adresse = validated_data.get('adresse', instance.adresse)
+        instance.telephone = validated_data.get('telephone', instance.telephone)
+        instance.parent = validated_data.get('parent', instance.parent)
+        return instance
+
 
 """ Eleves"""
 
@@ -60,7 +68,16 @@ class ElevesSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Eleve
-        fields = ['id', 'prenom', 'nom', 'dateNaissance', 'lieuNaissance']
+        fields = ['id', 'prenom', 'nom', 'dateNaissance', 'lieuNaissance', 'adresse', 'telephone']
+
+    def update(self, instance, validated_data):
+        instance.nom = validated_data.get('nom', instance.nom)
+        instance.prenom = validated_data.get('prenom', instance.prenom)
+        instance.dateNaissance = validated_data.get('dateNaissance', instance.dateNaissance)
+        instance.lieuNaissance = validated_data.get('lieuNaissance', instance.lieuNaissance)
+        instance.adresse = validated_data.get('adresse', instance.adresse)
+        instance.telephone = validated_data.get('telephone', instance.telephone)
+        return instance
 
 
 class EleveSerializer(serializers.ModelSerializer):
@@ -106,13 +123,14 @@ class EleveSerializer(serializers.ModelSerializer):
             eleve = Eleve(nom=validated_data['nom'], prenom=validated_data['prenom'], dateNaissance=validated_data['dateNaissance'], lieuNaissance=validated_data['lieuNaissance'], parent=parent)
         eleve.save()
         return eleve
-    
+
     def update(self, instance, validated_data):
         instance.nom = validated_data.get('nom', instance.nom)
         instance.prenom = validated_data.get('prenom', instance.prenom)
         instance.dateNaissance = validated_data.get('dateNaissance', instance.dateNaissance)
         instance.lieuNaissance = validated_data.get('lieuNaissance', instance.lieuNaissance)
         instance.adresse = validated_data.get('adresse', instance.adresse)
+        instance.parent = TuteurSerializer.update_tuteur(instance=instance.parent, validated_data = validated_data['parent'])
         instance.telephone = validated_data.get('telephone', instance.telephone)
         return instance
 
