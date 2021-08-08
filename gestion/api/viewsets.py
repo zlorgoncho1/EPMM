@@ -27,7 +27,10 @@ class EleveList(mixins.ListModelMixin, mixins.CreateModelMixin, generics.Generic
 	def post(self, request, format=None):
 		serializer = EleveSerializer(data=request.data)
 		if serializer.is_valid():
-			serializer.save()
+			try:
+				serializer.save()
+			except:
+				return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 			return Response(serializer.data, status=status.HTTP_201_CREATED)
 		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

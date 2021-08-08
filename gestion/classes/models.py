@@ -9,14 +9,14 @@ class Niveau(models.Model):
 
 
 class Serie(models.Model):
-	serie = models.CharField(max_length=30)
+	serie = models.CharField(max_length=30, null=True)
 
 	def __str__(self):
 		return str(self.serie)
 
 
 class Indice(models.Model):
-	indice = models.CharField(max_length=30)
+	indice = models.CharField(max_length=30, null=True)
 
 	def __str__(self):
 		return str(self.indice)
