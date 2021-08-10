@@ -208,7 +208,63 @@ class EleveSerializer(serializers.ModelSerializer):
         instance.dateNaissance = validated_data.get('dateNaissance', instance.dateNaissance)
         instance.lieuNaissance = validated_data.get('lieuNaissance', instance.lieuNaissance)
         instance.adresse = validated_data.get('adresse', instance.adresse)
-        instance.parent = TuteurSerializer.update_tuteur(instance=instance.parent, validated_data = validated_data['parent'])
+        try:
+            instance.parent = TuteurSerializer.update_tuteur(instance=instance.parent, validated_data = validated_data['parent'])
+        except KeyError:
+            pass
+        try:
+            classes = []
+            for anneeClasse in validated_data['classes']:
+                
+                # Récupération de la classe
+                classe = anneeClasse['classe']
+                niveau = Niveau.objects.filter(niveau=classe['niveau']['niveau'])
+                try:
+                    serie = Serie.objects.filter(serie=classe['serie']['serie'])
+                except KeyError:
+                    serie = [None]
+                try:
+                    indice = Indice.objects.filter(indice=classe['indice']['indice'])
+                except KeyError:
+                    indice = [None]
+
+                if list(niveau) == []:
+                    return None
+                else:
+                    try:
+                        classe = [classe for classe in Classe.objects.filter(indice=indice[0], serie=serie[0], niveau=niveau[0])]
+                    except:
+                        if list(indice) == []:
+                            classe = [classe for classe in Classe.objects.filter(indice=None, serie=serie[0], niveau=niveau[0])]
+                        if list(serie) == []:
+                            classe = [classe for classe in Classe.objects.filter(indice=indice[0], serie=None, niveau=niveau[0])]
+                        if list(indice) == [0] and list(serie) == [0]:
+                            classe = [classe for classe in Classe.objects.filter(indice=None, serie=None, niveau=niveau[0])]
+                    classe = classe[0]
+
+                # Récupération de l'année scolaire
+                annee = anneeClasse['annee']
+                annee1 = [annee for annee in AnneeScolaire.objects.filter(anneeDebut=annee['anneeDebut'])]
+                annee2 = [annee for annee in AnneeScolaire.objects.filter(anneeFin=annee['anneeFin'])]
+                if list(annee1) == [] or list(annee2) == []:
+                    return None
+                else:
+                    if annee1[0]==annee2[0]:
+                        annee = annee1[0]
+                    else:
+                        return None
+
+                # Récupération de AnneeClasse
+                anneeClasse = [anneeClasse for anneeClasse in AnneeClasse.objects.filter(annee=annee, classe=classe)]
+                if list(anneeClasse) == []:
+                    return None
+                else:
+                    anneeClasse = anneeClasse[0]
+
+                classes.append(anneeClasse)
+            instance.classes.set(classes)
+        except KeyError:
+            pass
         instance.telephone = validated_data.get('telephone', instance.telephone)
         return instance
 
