@@ -5,6 +5,8 @@ from rest_framework.response import Response
 from rest_framework import mixins
 from rest_framework import generics
 
+from rest_framework.permissions import IsAuthenticated
+
 from rest_framework import status
 from .serializers import *
 from eleves.models import *
@@ -25,13 +27,17 @@ class EleveList(mixins.ListModelMixin, mixins.CreateModelMixin, generics.Generic
 	def post(self, request, format=None):
 		serializer = EleveSerializer(data=request.data)
 		if serializer.is_valid():
-			serializer.save()
+			try:
+				serializer.save()
+			except:
+				return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 			return Response(serializer.data, status=status.HTTP_201_CREATED)
 		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class EleveDetail(APIView):
 	"""Détailler, Mettre à jour ou supprimer les informations d'un élève"""
+	permission_classes = [IsAuthenticated]
 
 	def get_object(self, pk):
 		try:
@@ -54,7 +60,7 @@ class EleveDetail(APIView):
 
 	def patch(self, request, pk, format=None):
 		eleve = self.get_object(pk)
-		serializer = ElevesSerializer(eleve, data=request.data, partial=True)
+		serializer = EleveSerializer(eleve, data=request.data, partial=True)
 		if serializer.is_valid():
 			serializer.save()
 			return Response(serializer.data)
