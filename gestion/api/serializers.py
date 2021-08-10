@@ -160,7 +160,7 @@ class EleveSerializer(serializers.ModelSerializer):
                         classe = [classe for classe in Classe.objects.filter(indice=indice[0], serie=None, niveau=niveau[0])]
                     if list(indice) == [0] and list(serie) == [0]:
                         classe = [classe for classe in Classe.objects.filter(indice=None, serie=None, niveau=niveau[0])]
-                    classe = classe[0]
+                classe = classe[0]
 
             # Récupération de l'année scolaire
             annee = anneeClasse['annee']
@@ -169,8 +169,8 @@ class EleveSerializer(serializers.ModelSerializer):
             if list(annee1) == [] or list(annee2) == []:
                 return None
             else:
-                if annee1==annee2[0]:
-                    annee = annee1
+                if annee1[0]==annee2[0]:
+                    annee = annee1[0]
                 else:
                     return None
 
