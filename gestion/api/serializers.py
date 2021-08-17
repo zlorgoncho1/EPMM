@@ -6,20 +6,7 @@ from paiements.models import *
 from pprint import pprint
 
 
-class NiveauSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Niveau
-        fields = ['niveau']
-
-class IndiceSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Indice
-        fields = ['indice']
-
-class SerieSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Serie
-        fields = ['serie']
+""" Annee Scolaire """
 
 class AnneeScolairesSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
@@ -38,36 +25,132 @@ class AnneeScolaireJrSerializer(serializers.ModelSerializer):
         fields = ['anneeDebut', 'anneeFin']
         depth = 1
 
+""" Annee Scolaire """
+
+
+""" Classes """
+
+# Niveau
+class NiveauSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Niveau
+        fields = ['niveau']
+
+    def update_niveau(instance, validated_data):
+        instance.niveau = validated_data.get('niveau', instance.niveau)
+        instance.save()
+        return instance
+
+# Indice
+class IndiceSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Indice
+        fields = ['indice']
+
+    def update_indice(instance, validated_data):
+        instance.indice = validated_data.get('indice', instance.indice)
+        instance.save()
+        return instance
+
+# Serie
+class SerieSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Serie
+        fields = ['serie']
+
+    def update_serie(instance, validated_data):
+        instance.serie = validated_data.get('serie', instance.serie)
+        instance.save()
+        return instance
+
+# Classe List
 class ClassesSerializer(serializers.ModelSerializer):
+
     niveau = NiveauSerializer()
     serie = SerieSerializer()
     indice = IndiceSerializer()
+
     class Meta:
         model = Classe
         fields = '__all__'
         depth = 1
 
-class ClassesLinkedSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = Classe
-        fields = '__all__'
-        depth = 1
-
+# Classe Details
 class ClasseSerializer(serializers.ModelSerializer):
+
+    niveau = NiveauSerializer()
+    serie = SerieSerializer()
+    indice = IndiceSerializer()
+
     class Meta:
         model = Classe
-        fields = ['niveau', 'serie', 'indice']
+        fields = ['niveau', 'serie', 'indice', 'annees']
         depth = 1
 
+    def create(self, validated_data):
+        niveau = Niveau.objects.filter(niveau=validated_data['niveau']['niveau'])
+        try:
+            serie = Serie.objects.filter(serie=validated_data['serie']['serie'])
+        except KeyError:
+            serie = [None]
+        try:
+            indice = Indice.objects.filter(indice=validated_data['indice']['indice'])
+        except KeyError:
+            indice = [None]
+
+        if list(niveau) == []:
+            return None
+        else:
+            try:
+                classe = [classe for classe in Classe.objects.filter(indice=indice[0], serie=serie[0], niveau=niveau[0])]
+                classe = classe[0]
+            except:
+                classe = Classe(niveau=niveau[0], indice=indice[0], serie=serie[0])
+                classe.save()
+        return classe
+
+    def update(self, instance, validated_data):
+        try:
+            instance.niveau = NiveauSerializer.update_niveau(instance=instance.niveau, validated_data = validated_data['niveau'])
+        except KeyError:
+            pass
+        try:
+            instance.serie = SerieSerializer.update_serie(instance=instance.serie, validated_data = validated_data['serie'])
+        except KeyError:
+            pass
+        try:
+            instance.indice = IndiceSerializer.update_indice(instance=instance.indice, validated_data = validated_data['indice'])
+        except KeyError:
+            pass
+        return instance
+
+""" Classes """
+
+
+""" AnneeClasse """
+
+# Table Annee-Classe Sérialiseur
 class AnneeClasseSerializer(serializers.ModelSerializer):
+
     annee = AnneeScolaireJrSerializer()
     classe = ClassesSerializer()
+
     class Meta:
         model = AnneeClasse
         fields = ['classe', 'annee']
         depth = 2
 
+""" AnneeClasse """
+
+
+""" Eleves """
+
+# Tuteur 
 class TuteurSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Tuteur
         fields = '__all__'
@@ -79,28 +162,17 @@ class TuteurSerializer(serializers.ModelSerializer):
         instance.adresse = validated_data.get('adresse', instance.adresse)
         instance.telephone = validated_data.get('telephone', instance.telephone)
         instance.parent = validated_data.get('parent', instance.parent)
+        instance.save()
         return instance
 
-
-""" Eleves """
-
+# Eleve List
 class ElevesSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Eleve
         fields = ['id', 'prenom', 'nom', 'dateNaissance', 'lieuNaissance', 'adresse', 'telephone']
 
-    def update(self, instance, validated_data):
-        instance.nom = validated_data.get('nom', instance.nom)
-        instance.prenom = validated_data.get('prenom', instance.prenom)
-        instance.dateNaissance = validated_data.get('dateNaissance', instance.dateNaissance)
-        instance.lieuNaissance = validated_data.get('lieuNaissance', instance.lieuNaissance)
-        instance.adresse = validated_data.get('adresse', instance.adresse)
-        instance.telephone = validated_data.get('telephone', instance.telephone)
-        instance.classes.set(validated_data['classes'])
-        return instance
-
-
+# Eleve List
 class EleveSerializer(serializers.ModelSerializer):
 
     # Sérialisation des Foreign Key ou des Many-To-Many fields

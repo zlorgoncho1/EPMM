@@ -52,7 +52,7 @@ class EleveDetail(APIView):
 
 	def put(self, request, pk, format=None):
 		eleve = self.get_object(pk)
-		serializer = ElevesSerializer(eleve, data=request.data)
+		serializer = EleveSerializer(eleve, data=request.data)
 		if serializer.is_valid():
 			serializer.save()
 			return Response(serializer.data)
@@ -73,3 +73,62 @@ class EleveDetail(APIView):
 
 
 """ ELEVE """
+
+""" CLASSE """
+class ClasseList(mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericAPIView):
+	"""Liste l'ensemble des élèves ou ajoute un élève."""
+
+	queryset = Classe.objects.all()
+	serializer_class = ClassesSerializer
+	filterset_fields = ['niveau','serie', 'indice']
+	search_fields = ['niveau', 'serie', 'indice']
+
+	def get(self, request):
+		return self.list(request)
+
+	def post(self, request, format=None):
+		serializer = ClasseSerializer(data=request.data)
+		if serializer.is_valid():
+			serializer.save()
+			return Response(serializer.data, status=status.HTTP_201_CREATED)
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ClasseDetail(APIView):
+	"""Détailler, Mettre à jour ou supprimer les informations d'un élève"""
+	permission_classes = [IsAuthenticated]
+
+	def get_object(self, pk):
+		try:
+			return Classe.objects.get(pk=pk)
+		except Classe.DoesNotExist:
+			raise Http404
+
+	def get(self, request, pk, format=None):
+		classe = self.get_object(pk)
+		serializer = ClasseSerializer(classe)
+		return Response(serializer.data)
+
+	def put(self, request, pk, format=None):
+		classe = self.get_object(pk)
+		serializer = ClasseSerializer(classe, data=request.data)
+		if serializer.is_valid():
+			serializer.save()
+			return Response(serializer.data)
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+	def patch(self, request, pk, format=None):
+		classe = self.get_object(pk)
+		serializer = ClasseSerializer(classe, data=request.data, partial=True)
+		if serializer.is_valid():
+			serializer.save()
+			return Response(serializer.data)
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+	def delete(self, request, pk, format=None):
+		classe = self.get_object(pk)
+		classe.delete()
+		return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+""" CLASSE """
