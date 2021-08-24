@@ -8,7 +8,7 @@ from pprint import pprint
 
 """ Annee Scolaire """
 
-class AnneeScolairesSerializer(serializers.HyperlinkedModelSerializer):
+class AnneeScolairesSerializer(serializers.ModelSerializer):
     class Meta:
         model = AnneeScolaire
         fields = '__all__'
@@ -143,6 +143,15 @@ class AnneeClasseSerializer(serializers.ModelSerializer):
         fields = ['classe', 'annee']
         depth = 2
 
+class AnneeClasse2Serializer(serializers.ModelSerializer):
+
+    classe = ClassesSerializer()
+
+    class Meta:
+        model = AnneeClasse
+        fields = ['classe']
+        depth = 2
+
 """ AnneeClasse """
 
 
@@ -166,13 +175,20 @@ class TuteurSerializer(serializers.ModelSerializer):
         return instance
 
 # Eleve List
-class ElevesSerializer(serializers.HyperlinkedModelSerializer):
+class ElevesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Eleve
         fields = ['id', 'prenom', 'nom', 'dateNaissance', 'lieuNaissance', 'adresse', 'telephone']
 
-# Eleve List
+# Eleve List for other
+class Eleves2Serializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Eleve
+        fields = ['id', 'prenom', 'nom']
+
+# Eleve Details
 class EleveSerializer(serializers.ModelSerializer):
 
     # Sérialisation des Foreign Key ou des Many-To-Many fields
@@ -338,6 +354,200 @@ class EleveSerializer(serializers.ModelSerializer):
         except KeyError:
             pass
         instance.telephone = validated_data.get('telephone', instance.telephone)
+        instance.save()
         return instance
 
-""" Eleves"""
+# Eleve Classe
+class EleveClasseSerializer(serializers.ModelSerializer):
+
+    eleve = Eleves2Serializer()
+    classe = AnneeClasse2Serializer()
+
+    class Meta:
+        model = EleveClasse
+        fields = ['eleve', 'classe']
+        depth = 2
+
+""" Eleves """
+
+
+""" Paiements """
+# Type de Paiements
+class TypeDePaiementSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = TypeDePaiement
+        fields = ['libelle']
+
+    def update_typeDePaiement(instance, validated_data):
+        instance.libelle = validated_data.get('libelle', instance.libelle)
+        instance.save()
+        return instance
+
+# Paiements list
+class PaiementsSerializer(serializers.ModelSerializer):
+
+    typeDePaiement = TypeDePaiementSerializer()
+    eleve = EleveClasseSerializer()
+
+    class Meta:
+        model = Paiement
+        fields = ['eleve','typeDePaiement', 'montant', 'dateDePaiement', 'mois']
+        depth = 2
+
+""" Paiements """
+
+
+# Professeur List
+class ProfesseursSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Professeur
+        fields = ['id', 'prenom', 'nom', 'matiere']
+
+
+# Professeur Details
+class ProfesseurSerializer(serializers.ModelSerializer):
+
+    # Sérialisation des Foreign Key ou des Many-To-Many fields
+    classes = AnneeClasseSerializer(many=True)
+
+    class Meta:
+        model = Professeur
+        fields = ['nom', 'prenom', 'matiere', 'adresse', 'telephone', 'salaire', 'classes']
+        depth = 1
+
+    def create(self, validated_data):
+        
+        # Création de l'attribut classes ( Relation many to many )
+        classes = []
+        for anneeClasse in validated_data['classes']:
+            
+            # Récupération de la classe
+            classe = anneeClasse['classe']
+            niveau = Niveau.objects.filter(niveau=classe['niveau']['niveau'])
+            try:
+                serie = Serie.objects.filter(serie=classe['serie']['serie'])
+            except KeyError:
+                serie = [None]
+            try:
+                indice = Indice.objects.filter(indice=classe['indice']['indice'])
+            except KeyError:
+                indice = [None]
+
+            if list(niveau) == []:
+                return None
+            else:
+                try:
+                    classe = [classe for classe in Classe.objects.filter(indice=indice[0], serie=serie[0], niveau=niveau[0])]
+                except:
+                    if list(indice) == []:
+                        classe = [classe for classe in Classe.objects.filter(indice=None, serie=serie[0], niveau=niveau[0])]
+                    if list(serie) == []:
+                        classe = [classe for classe in Classe.objects.filter(indice=indice[0], serie=None, niveau=niveau[0])]
+                    if list(indice) == [0] and list(serie) == [0]:
+                        classe = [classe for classe in Classe.objects.filter(indice=None, serie=None, niveau=niveau[0])]
+                classe = classe[0]
+
+            # Récupération de l'année scolaire
+            annee = anneeClasse['annee']
+            annee1 = [annee for annee in AnneeScolaire.objects.filter(anneeDebut=annee['anneeDebut'])]
+            annee2 = [annee for annee in AnneeScolaire.objects.filter(anneeFin=annee['anneeFin'])]
+            if list(annee1) == [] or list(annee2) == []:
+                return None
+            else:
+                if annee1[0]==annee2[0]:
+                    annee = annee1[0]
+                else:
+                    return None
+
+            # Récupération de AnneeClasse
+            anneeClasse = [anneeClasse for anneeClasse in AnneeClasse.objects.filter(annee=annee, classe=classe)]
+            if list(anneeClasse) == []:
+                return None
+            else:
+                anneeClasse = anneeClasse[0]
+
+            classes.append(anneeClasse)
+
+        # Création de l'objet élève
+        try:
+            if len(validated_data) == 4:
+                professeur = Professeur(nom=validated_data['nom'], prenom=validated_data['prenom'], matiere=validated_data['matiere'], salaire=validated_data['salaire'])
+            elif len(validated_data) == 5:
+                try:
+                    professeur = Professeur(nom=validated_data['nom'], prenom=validated_data['prenom'], matiere=validated_data['matiere'], salaire=validated_data['salaire'], adresse=validated_data['adresse'])
+                except:
+                    professeur = Professeur(nom=validated_data['nom'], prenom=validated_data['prenom'], matiere=validated_data['matiere'], salaire=validated_data['salaire'], telephone=validated_data['telephone'])
+            elif len(validated_data) == 6:
+                professeur = Professeur(nom=validated_data['nom'], prenom=validated_data['prenom'], matiere=validated_data['matiere'], salaire=validated_data['salaire'], adresse=validated_data['adresse'], telephone=validated_data['telephone'])
+            else:
+                professeur = Professeur(nom=validated_data['nom'], prenom=validated_data['prenom'], matiere=validated_data['matiere'], salaire=validated_data['salaire'])
+        except:
+            professeur = Professeur(nom=validated_data['nom'], prenom=validated_data['prenom'], matiere=validated_data['matiere'], salaire=validated_data['salaire'])
+        professeur.save()
+        professeur.classes.set(classes)
+        return professeur
+
+    def update(self, instance, validated_data):
+        instance.nom = validated_data.get('nom', instance.nom)
+        instance.prenom = validated_data.get('prenom', instance.prenom)
+        instance.matiere = validated_data.get('matiere', instance.matiere)
+        instance.salaire = validated_data.get('salaire', instance.salaire)
+        instance.adresse = validated_data.get('adresse', instance.adresse)
+        try:
+            classes = []
+            for anneeClasse in validated_data['classes']:
+                
+                # Récupération de la classe
+                classe = anneeClasse['classe']
+                niveau = Niveau.objects.filter(niveau=classe['niveau']['niveau'])
+                try:
+                    serie = Serie.objects.filter(serie=classe['serie']['serie'])
+                except KeyError:
+                    serie = [None]
+                try:
+                    indice = Indice.objects.filter(indice=classe['indice']['indice'])
+                except KeyError:
+                    indice = [None]
+
+                if list(niveau) == []:
+                    return None
+                else:
+                    try:
+                        classe = [classe for classe in Classe.objects.filter(indice=indice[0], serie=serie[0], niveau=niveau[0])]
+                    except:
+                        if list(indice) == []:
+                            classe = [classe for classe in Classe.objects.filter(indice=None, serie=serie[0], niveau=niveau[0])]
+                        if list(serie) == []:
+                            classe = [classe for classe in Classe.objects.filter(indice=indice[0], serie=None, niveau=niveau[0])]
+                        if list(indice) == [0] and list(serie) == [0]:
+                            classe = [classe for classe in Classe.objects.filter(indice=None, serie=None, niveau=niveau[0])]
+                    classe = classe[0]
+
+                # Récupération de l'année scolaire
+                annee = anneeClasse['annee']
+                annee1 = [annee for annee in AnneeScolaire.objects.filter(anneeDebut=annee['anneeDebut'])]
+                annee2 = [annee for annee in AnneeScolaire.objects.filter(anneeFin=annee['anneeFin'])]
+                if list(annee1) == [] or list(annee2) == []:
+                    return None
+                else:
+                    if annee1[0]==annee2[0]:
+                        annee = annee1[0]
+                    else:
+                        return None
+
+                # Récupération de AnneeClasse
+                anneeClasse = [anneeClasse for anneeClasse in AnneeClasse.objects.filter(annee=annee, classe=classe)]
+                if list(anneeClasse) == []:
+                    return None
+                else:
+                    anneeClasse = anneeClasse[0]
+
+                classes.append(anneeClasse)
+            instance.classes.set(classes)
+        except KeyError:
+            pass
+        instance.telephone = validated_data.get('telephone', instance.telephone)
+        instance.save()
+        return instance
