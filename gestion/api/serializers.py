@@ -392,8 +392,27 @@ class PaiementsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Paiement
-        fields = ['eleve','typeDePaiement', 'montant', 'dateDePaiement', 'mois']
+        fields = ['id', 'eleve','typeDePaiement', 'dateDePaiement']
         depth = 2
+
+# Paiement Details
+class PaiementSerializer(serializers.ModelSerializer):
+
+    # Sérialisation des Foreign Key ou des Many-To-Many fields
+    typeDePaiement = TypeDePaiementSerializer()
+    eleve = EleveClasseSerializer()
+
+    class Meta:
+        model = Paiement
+        fields = ['eleve','typeDePaiement', 'mois', 'dateDePaiement', 'montant', 'numero']
+        depth = 1
+"""
+    def create(self, validated_data):
+
+        # Récupération de l'élève
+        pprint (validated_data)
+        return 0
+"""
 
 """ Paiements """
 

@@ -175,6 +175,29 @@ class PaiementEleveList(mixins.ListModelMixin, mixins.CreateModelMixin, generics
 		paiements = self.get_object(pk)
 		serializer = PaiementsSerializer(paiements, many=True)
 		return Response(serializer.data)
+"""
+	def post(self, request, pk, format=None):
+		serializer = PaiementSerializer(data=request.data)
+		if serializer.is_valid():
+			serializer.save()
+			return Response(serializer.data, status=status.HTTP_201_CREATED)
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+"""
+class PaiementEleveDetail(mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericAPIView):
+	permission_classes = [IsAuthenticated]
+	queryset = Paiement.objects.all()
+	serializer_class = PaiementsSerializer
+
+	def get_object(self, id):
+		try:
+			return Paiement.objects.get(id=id)
+		except Paiement.DoesNotExist:
+			raise Http404
+
+	def get(self, request, pk, id, format=None):
+		paiement = self.get_object(id)
+		serializer = PaiementSerializer(paiement)
+		return Response(serializer.data)
 
 """ PAIEMENTS """
 

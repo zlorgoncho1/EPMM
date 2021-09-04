@@ -11,7 +11,8 @@ urlpatterns = [
     path('eleves/<int:pk>/', viewsets.EleveDetail.as_view()),
 
     path('paiements/', viewsets.PaiementList.as_view()),
-    path('eleves/<int:pk>/paiements', viewsets.PaiementEleveList.as_view()),
+    path('eleves/<int:pk>/paiements/', viewsets.PaiementEleveList.as_view()),
+    path('eleves/<int:pk>/paiements/<int:id>/', viewsets.PaiementEleveDetail.as_view()),
 
     path('professeurs/', viewsets.ProfesseurList.as_view()),
     path('professeurs/<int:pk>/', viewsets.ProfesseurDetail.as_view()),
