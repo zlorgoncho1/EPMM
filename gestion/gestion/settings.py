@@ -42,6 +42,11 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
+    # Django Admin Interface
+    'admin_interface',
+    'colorfield',
+    # Django Admin Interface
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -61,6 +66,7 @@ INSTALLED_APPS = [
     'paiements',
 ]
 
+X_FRAME_OPTIONS='SAMEORIGIN'
 
 REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
